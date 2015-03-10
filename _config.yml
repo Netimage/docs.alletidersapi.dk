@@ -1,7 +1,7 @@
 name: "Combine Product & Event Booking"
 description: "This is the documentation site for Combine Product & Event Booking system."
 
-url: "http://localhost:4000"
+url: "http://ddapi.netimage.dk"
 
 markdown: rdiscount
 permalink: pretty
