@@ -5,6 +5,533 @@ HOST: http://XXXX.denmarkdirect.dk
 
 Welcome to the **DenmarkBooking** API.
 
+# Group Product Import
+Alletiders API provides a REST API allowing products to be imported.
+
+The import process contains 3 required steps:
++ Create transaction
++ Send product data
++ Do the import
+## Create Transaction [/provider/product]
+### Create Transaction [POST]
+Create a new product import transaction. The transaction will be used to transfer product data.
+
++ Response 201
+    + Headers
+
+            Location: /provider/product/{transaction}
+## Import Products [/provider/product/{transaction}]
+### Get Status [GET]
+The GET method will show the current status of the import.
+#### Status codes
++ Pending or processing:  202 Accepted
++ Done with success:  200 OK
++ Nothing was uploaded: 204 No Content
++ Done with errors:  206 Partial Content
+
+
++ Parameters
+    + transaction (required, integer)
+        Transaction identifier.
+
++ Response 202
+        
++ Response 200
+
++ Response 204
+
++ Response 206
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <errors xmlns="http://netimage.dk/pcm/provider/order-export">
+         <error>
+           <sequence>1</sequence>
+           <id>18</id>
+           <code>1048</code>
+           <message>Example text</message>
+         </error>
+        </errors>
+### Create/Update Products [PUT]
+Create and/or update products. Create or update will be determined by the product id, if it already exists an update will be done, otherwise a new product will be created. 
+All product attributes are optional, except the “id” and “type”.  In order to disable a product the sales period must be set to an expired date.
+
+NOTE: The request will be completed as soon as the XML document has been transferred. The
+processing of data is done asynchronously afterwards.
+
+
+#### Request body
++ Attributes
+
+    + id (required, integer)
+    
+        Product identifier. Max length is 10.
+   
+    + type (required, string)
+       
+        Product type. Max length 255. Can have the following values: `standard`,`booking`,`accomodation`,`subscription`.
+   
+    + title (optional, string)
+       
+        Product title. Defaults to `?????` if omitted during creation.
+    
+    + intro (optional, string)
+    
+        Product short description. Defaults to `?????` if omitted during creation.
+    
+    + description (optional, string/html)
+        
+        Product description. Defaults to `?????` if omitted during creation.
+    
+    + sale (optional, array)
+        
+        Sale can include the following properties.
+
+        + from (optional, datetime (Y-m-d\TH:i:sP))
+        + to (optional, datetime (Y-m-d\TH:i:sP))
+        + price
+            + currency (string)
+            
+                ISO 4217 format e.g. EUR, DKK
+                
+            + value (integer)
+            
+                In cents, to avoid rounding errors
+                
+            + comment (string)
+            
+                A comment
+                
+        + inventory (integer, optional) 
+        
+            Standard products supports inventory update. Positive value = add. Negative = substract.
+        
+        + interval_length (integer, required)
+            
+            For accomodation only.
+        
+        + interval_unit (string, required)
+            
+            For accomodation only. Possible values: `week`, `day`, `hour`.
+        
+        + week_days (integer, required)
+            
+            For accomodation only. Comma spearated list of days as 1-7
+    
+    + owner (optional, string)
+        
+        Product owner. Max length: 80
+    + calendar (optional, array)
+        Calendar properties for booking products only:
+        
+        + interval_length (required, integer)
+            Length of interval
+        + interval_unit (required, string)
+            Possible values: week, day, hour
+        + sales_deadline (required, integer)
+        + sales_deadline_unit (required, string)
+            Possible values: week, day, hour
+        + active (required, boolean)
+        + from (required, date(Y-m-d))
+        + to (required, date(Y-m-d))
+
+    ##### Calendar lines
+    For booking and accomodation products it is possible to add calendar lines (<calendar>). 
+    A calendar line is uniquely identified by the combination of:
+    
+    product-id,
+    start-date,
+    end-date,
+    quantity
+    
+    Active/inactive lines
+    When importing a product all the lines are disabled before the actual import and only enabled if there are any matching lines. If there are no matches found on a imported line, it will be created in the system.
+    
+    As an example, let’s look at an existing product with following calendar data:
+    product-id: 1
+    start date: 1.September 2013
+    end date: 1.November 2013
+    quantity: 100
+    
+    If a line with the same data is imported, the current line is updated to active / inactive. 
+    If a line with a different quantity, such as 50, is imported, the current line is deactivated and a new quantity line will be added with 50. 
+    A line can not be deleted.
+
+
++ Parameters
+    + transaction (required, integer)
+        Transaction identifier.
+            
++ Request Standard product creation - XML example (application/xml)
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <products>
+            <product id="423">
+                <title>
+                    <values>
+                        <value lang="da">Entre</value>
+                        <value lang="en">Single day</value>
+                    </values>
+                </title>
+                <intro>
+                    <values>
+                        <value lang="da">Entre ...</value>
+                        <value lang="en">Single day ...</value>
+                    </values>
+                </intro>
+                <description>
+                    <values>
+                        <value lang="da">Entre billet gyldig for en enkelt dag</value>
+                        <value lang="en">Ticket valid for a single day</value>
+                    </values>
+                </description>
+                <type>standard</type>
+                <sale>
+                    <from>2013-01-29T09:00:00+01:00</from>
+                    <to>2013-09-01T00:00:00+02:00</to>
+                    <prices>
+                        <price currency='DKK'>
+                            <value>4200</value>
+                            <comment>Udsalgspris</comment>
+                        </price>
+                        <price currency='EUR'>
+                            <value>600</value>
+                        </price>
+                    </prices>
+                <inventory>10</inventory>
+                </sale>
+                <owner id="234">
+                    <name>Kim Jersin</name>
+                </owner>
+            </product>
+        </products>
+
++ Request Subscription product creation - XML example (application/xml)
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <products>
+            <product id="4223">
+                <title>
+                    <values>
+                        <value lang="da">Abonnements produkt</value>
+                        <value lang="en">Subscription product</value>
+                    </values>
+                </title>
+                <intro>
+                    <values>
+                        <value lang="da">Intro tekst ...</value>
+                        <value lang="en">Short description ...</value>
+                    </values>
+                </intro>
+                <description>
+                    <values>
+                        <value lang="da">Dette er et abonnement-produkt</value>
+                        <value lang="en">This is a subscription product</value>
+                    </values>
+                </description>
+                <type>subscription</type>
+                <sale>
+                    <from>2014-01-01T09:00:00+01:00</from>
+                    <to>2014-03-01T00:00:00+02:00</to>
+                    <prices>
+                        <price currency='DKK'>
+                            <value>4200</value>
+                            <comment>Udsalgspris</comment>
+                        </price>
+                        <price currency='EUR'>
+                            <value>600</value>
+                        </price>
+                    </prices>
+                </sale>
+                <owner id="5634">
+                    <name>sny</name>
+                </owner>
+            </product>
+        </products>
+
++ Request Booking product creation - XML example (application/xml)
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <products>
+            <product id="428">
+                <title>
+                    <values>
+                        <value lang="da">Entre</value>
+                        <value lang="en">Single day</value>
+                    </values>
+                </title>
+                <intro>
+                    <values>
+                        <value lang="da">Entre ...</value>
+                        <value lang="en">Single day ...</value>
+                    </values>
+                </intro>
+                <description>
+                    <values>
+                        <value lang="da">Entre billet gyldig for en enkelt dag</value>
+                        <value lang="en">Ticket valid for a single day</value>
+                    </values>
+                </description>
+                <type>booking</type>
+                <calendar interval_unit="day" sales_deadline="0" sales_deadline_unit="day">
+                    <entry active="true">
+                        <quantity>40</quantity>
+                        <from>2013-08-29</from>
+                        <to>2013-12-01</to>
+                        <comment>Imported sale</comment>
+                    </entry>
+                </calendar>
+                <sale>
+                    <from>2013-01-29T09:00:00+01:00</from>
+                    <to>2013-11-17T00:00:00+02:00</to>
+                    <prices>
+                        <price currency='DKK'>
+                            <value>4300</value>
+                            <comment>Udsalgspris</comment>
+                        </price>
+                        <price currency='EUR'>
+                            <value>600</value>
+                        </price>
+                    </prices>
+                </sale>
+                <owner id="234">
+                    <name>Kim Jersin</name>
+                </owner>
+            </product>
+        </products>
+
++ Request Accomodation product - XML example (application/xml)
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <products>
+            <product id="428">
+                <title>
+                    <values>
+                        <value lang="da">Entre</value>
+                        <value lang="en">Single day</value>
+                    </values>
+                </title>
+                <intro>
+                    <values>
+                        <value lang="da">Entre ...</value>
+                        <value lang="en">Single day ...</value>
+                    </values>
+                </intro>
+                <description>
+                    <values>
+                        <value lang="da">Entre billet gyldig for en enkelt dag</value>
+                        <value lang="en">Ticket valid for a single day</value>
+                    </values>
+                </description>
+                <type>accommodation</type>
+                <calendar sales_deadline="0" sales_deadline_unit="day">
+                    <entry active="true">
+                        <quantity>40</quantity>
+                        <from>2013-08-29</from>
+                        <to>2013-12-01</to>
+                        <comment>Imported sale</comment>
+                    </entry>
+                </calendar>
+                <sale interval_length="2" interval_unit="week" week_days="6,7">
+                    <from>2013-01-29T09:00:00+01:00</from>
+                    <to>2013-11-17T00:00:00+02:00</to>
+                    <prices>
+                        <price currency='DKK'>
+                            <value>4300</value>
+                            <comment>Udsalgspris</comment>
+                        </price>
+                        <price currency='EUR'>
+                            <value>600</value>
+                        </price>
+                    </prices>
+                </sale>
+                <owner id="234">
+                    <name>Kim Jersin</name>
+                </owner>
+            </product>
+        </products>
+
+
++ Response 202 
+# Group Member Import
+Members include person, product, and ticket information. Since members are registered to a product, this product needs to be imported before the member is imported (if it does not exist  in Alletiders API already).  Furthermore in order to be able to scan tickets the product type needs to be subscription.
+The member import currently supports two content types: XML and CSV.
+
+The member import process contains 3 steps:
++ Create a transaction for the import
++ Send member data
++ Do the import
+## Create Transaction [/provider/member]
+### Create Transaction [POST]
+Create a new member import transaction. The transaction is afterwards used to transfer members to Alletiders API.
+
++ Response 201
+    + Headers
+    
+            Location: /provider/member/{transaction}
+## Import Members [/provider/member/{transaction}]
+### Get status [GET]
+The GET method will show the current status of the import. 
+
+It is not possible to delete a member /barcode. If a ticket is lost or needs to be deleted, you will have to change the valid to date to a date in the past.  Thus, it is not possible to reuse old codes.
+
+It is not possible to change the type (ticketIdentity-type) on already imported member. This will result in a warning.
+
+#### Warnings
+| Code | Description |
+| --- | --- |
+| 995 | This warning will be shown when updating an already imported member with a different product label. The rest will be updated |
+| 1062 | The code exist for another provider. If this happens the import will be interrupted and nothing will be imported. Please contact Combine if this error occurs. |
+| 1452 | The product-id (product label) does not exist. Please check if `<product><label>xxx</label></product>` is specified correctly and that the product exists in Alletiders API. |
+
+#### Status codes
++ Pending or processing:  202 Accepted
++ Done with success:  200 OK
++ Nothing was uploaded: 204 No Content
++ Done with errors:  206 Partial Content
+
++ Response 202
++ Response 200
++ Response 204
++ Response 206
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <errors xmlns="http://netimage.dk/pcm/provider/order-export">
+         <error>
+           <sequence>1</sequence>
+           <id>18</id>
+           <code>1048</code>
+           <message>Example text</message>
+         </error>
+        </errors>
+### Import Members [PUT]
+Imports the members to Alletiders API. If a member already exists data will be updated. Expected file encoding is UTF 8 and content type must be set in the header.
+
+#### Request body
++ Attributes
+    + address (optional, array)
+        + name (optional, string)
+        
+            Max length: 255 characters.
+        + address (optional, string)
+        
+            Max length: 255 characters.
+        + zipCode (optional, string)
+        
+            Max length: 5 characters.
+
+        + city (optional, string)
+        
+            Max length: 64 characters.
+        + country (optional, string)
+            
+            Max length: 25 characters.
+        + phone (optional, string)
+        
+            Max length: 16 characters.
+        + email (optional, string)
+        
+            Max length: 255 characters.
+
+    + ticketIdentity (required, array)
+        + code (required, string)
+            
+            Ticket code. Max length: 255 characters.
+        + type (required, string)
+        
+            Ticket code type e.g. `EAN8`, `EAN13`, `Code128`.
+        + valid (required, array)
+            + from (required, datetime)
+            
+                Format: YYYY-MM-DDThh:mm:ssTZD
+            + to (required, datetime)                
+                Format: YYYY-MM-DDThh:mm:ssTZD
+    + product (required, XXX)
+    
+        Product consists of the product id that the member has subscribed to:
+        label*  [type: int | maxlength: 10]
+        NOTE: the product needs to be of type subscription.
+
+
++ Parameters
+    + transaction (required, integer)
+        Transaction Identifier
+
++ Response 202
+    + Headers
+    
+            Location: /provider/member/{transaction}
+## Create Transaction [/provider/order-export]
+## Status [/provider/order-export/{transaction}]
+### Get Completed Orders [GET]
+Get all completed orders for given transaction id. If it is a new transaction, All new orders are marked as exported (with the transaction) and returned.
+If it is an already used transaction, Orders already marked (exported or  tried exported) would be returned
+
++ Parameters 
+    + transaction (required, integer)
+        Transaction identifier
++ Response 200
+    Only if an order is made using a sales channel, the channel id will be specified
+
+    + Body
+
+            <?xml version="1.0" encoding="UTF-8"?>
+            <orders xmlns="http://netimage.dk/pcm/provider/order-export">
+              <order id="7">
+                <insertTime>2013-02-07T14:46:23+01:00</insertTime>
+                <modified>2013-02-08T12:37:04+01:00</modified>
+                <address id="3">
+                  <name>John Doe</name>
+                  <address>Evergreen Terrace 742</address>
+                  <zipCode>1000</zipCode>
+                  <city>København K</city>
+                  <country>Denmark</country>
+                  <phone></phone>
+                  <email>jd@example.com</email>
+                </address>
+                 <channelId>3</channelId>
+                <currency>EUR</currency>
+                <orderLines>
+                  <orderLine id="23">
+                    <quantity>2</quantity>
+                    <prices>
+                      <price id="54">
+                        <value>26000</value>
+                      </price>
+                    </prices>
+                    <product id="6" ver="1">
+                      <title>Dobbeltværelse (pris for 2 pers.)</title>
+                    </product>
+                    <ticketIdentities>
+                      <ticketIdentity id="23">
+                        <type>barcode</type>
+                        <code>8705647250635</code>
+                        <barcodeType>EAN13</barcodeType>
+                        <scanLog/>
+                      </ticketIdentity>
+                    </ticketIdentities>
+                  </orderLine>
+                  <orderLine id="24">
+                    <quantity>2</quantity>
+                    <prices>
+                      <price id="51">
+                        <value>26000</value>
+                      </price>
+                    </prices>
+                    <product id="6" ver="1">
+                      <title>Dobbeltværelse (pris for 2 pers.)</title>
+                    </product>
+                    <ticketIdentities>
+                      <ticketIdentity id="24">
+                        <type>barcode</type>
+                        <code>5432758218607</code>
+                        <barcodeType>EAN13</barcodeType>
+                        <scanLog/>
+                      </ticketIdentity>
+                    </ticketIdentities>
+                  </orderLine>
+                </orderLines>
+              </order>
+            </orders>
 # Group Language, Currency
 ## Language [/provider/language]
 ### Get Supported Languages [GET]
@@ -60,5 +587,44 @@ Retrieve a list of supported languages.
               "label":"dutch",
               "locale":"nl_NL",
               "code":"nl"
+           }
+        ]
+## Currency [/provider/currency]
+### Get Supported Currencies [GET]
+Retrieve a list of supported currencies.
+
++ Response 200 (application/xml)
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <currencies xmlns="http://netimage.dk/pcm/provider/currency">
+          <currency id="1">DKK</currency>
+          <currency id="2">EUR</currency>
+          <currency id="3">USD</currency>
+          <currency id="4">SEK</currency>
+          <currency id="5">NOK</currency>
+        </currencies>
+
++ Response 200 (application/json)
+
+        [
+           {
+              "id":1,
+              "currency":"DKK"
+           },
+           {
+              "id":2,
+              "currency":"EUR"
+           },
+           {
+              "id":3,
+              "currency":"USD"
+           },
+           {
+              "id":4,
+              "currency":"SEK"
+           },
+           {
+              "id":5,
+              "currency":"NOK"
            }
         ]
