@@ -1,9 +1,10 @@
 FORMAT: 1A
-HOST: http://XXXX.denmarkdirect.dk
+HOST: http://alletidersapi.dk
 
 # api.DenmarkBooking.dk
 
 Welcome to the **DenmarkBooking** API.
+
 
 # Group Product Import
 Alletiders API provides a REST API allowing products to be imported.
@@ -12,47 +13,22 @@ The import process contains 3 required steps:
 + Create transaction
 + Send product data
 + Do the import
+
 ## Create Transaction [/provider/product]
 ### Create Transaction [POST]
 Create a new product import transaction. The transaction will be used to transfer product data.
 
 + Response 201
+    Created: The URI of the new transaction is returned in the Location header.
     + Headers
 
             Location: /provider/product/{transaction}
+
+
 ## Import Products [/provider/product/{transaction}]
-### Get Status [GET]
-The GET method will show the current status of the import.
-#### Status codes
-+ Pending or processing:  202 Accepted
-+ Done with success:  200 OK
-+ Nothing was uploaded: 204 No Content
-+ Done with errors:  206 Partial Content
 
-
-+ Parameters
-    + transaction (required, integer)
-        Transaction identifier.
-
-+ Response 202
-        
-+ Response 200
-
-+ Response 204
-
-+ Response 206
-
-        <?xml version="1.0" encoding="UTF-8"?>
-        <errors xmlns="http://netimage.dk/pcm/provider/order-export">
-         <error>
-           <sequence>1</sequence>
-           <id>18</id>
-           <code>1048</code>
-           <message>Example text</message>
-         </error>
-        </errors>
 ### Create/Update Products [PUT]
-Create and/or update products. Create or update will be determined by the product id, if it already exists an update will be done, otherwise a new product will be created. 
+Create and/or update products. Create or update will be determined by the product id, if it already exists an update will be done, otherwise a new product will be created.
 All product attributes are optional, except the “id” and “type”.  In order to disable a product the sales period must be set to an expired date.
 
 NOTE: The request will be completed as soon as the XML document has been transferred. The
@@ -63,66 +39,66 @@ processing of data is done asynchronously afterwards.
 + Attributes
 
     + id (required, integer)
-    
+
         Product identifier. Max length is 10.
-   
+
     + type (required, string)
-       
+
         Product type. Max length 255. Can have the following values: `standard`,`booking`,`accomodation`,`subscription`.
-   
+
     + title (optional, string)
-       
+
         Product title. Defaults to `?????` if omitted during creation.
-    
+
     + intro (optional, string)
-    
+
         Product short description. Defaults to `?????` if omitted during creation.
-    
+
     + description (optional, string/html)
-        
+
         Product description. Defaults to `?????` if omitted during creation.
-    
+
     + sale (optional, array)
-        
+
         Sale can include the following properties.
 
         + from (optional, datetime (Y-m-d\TH:i:sP))
         + to (optional, datetime (Y-m-d\TH:i:sP))
         + price
             + currency (string)
-            
+
                 ISO 4217 format e.g. EUR, DKK
-                
+
             + value (integer)
-            
+
                 In cents, to avoid rounding errors
-                
+
             + comment (string)
-            
+
                 A comment
-                
-        + inventory (integer, optional) 
-        
+
+        + inventory (integer, optional)
+
             Standard products supports inventory update. Positive value = add. Negative = substract.
-        
+
         + interval_length (integer, required)
-            
+
             For accomodation only.
-        
+
         + interval_unit (string, required)
-            
+
             For accomodation only. Possible values: `week`, `day`, `hour`.
-        
+
         + week_days (integer, required)
-            
+
             For accomodation only. Comma spearated list of days as 1-7
-    
+
     + owner (optional, string)
-        
+
         Product owner. Max length: 80
     + calendar (optional, array)
         Calendar properties for booking products only:
-        
+
         + interval_length (required, integer)
             Length of interval
         + interval_unit (required, string)
@@ -135,32 +111,32 @@ processing of data is done asynchronously afterwards.
         + to (required, date(Y-m-d))
 
     ##### Calendar lines
-    For booking and accomodation products it is possible to add calendar lines (<calendar>). 
+    For booking and accomodation products it is possible to add calendar lines (<calendar>).
     A calendar line is uniquely identified by the combination of:
-    
+
     product-id,
     start-date,
     end-date,
     quantity
-    
+
     Active/inactive lines
     When importing a product all the lines are disabled before the actual import and only enabled if there are any matching lines. If there are no matches found on a imported line, it will be created in the system.
-    
+
     As an example, let’s look at an existing product with following calendar data:
     product-id: 1
     start date: 1.September 2013
     end date: 1.November 2013
     quantity: 100
-    
-    If a line with the same data is imported, the current line is updated to active / inactive. 
-    If a line with a different quantity, such as 50, is imported, the current line is deactivated and a new quantity line will be added with 50. 
+
+    If a line with the same data is imported, the current line is updated to active / inactive.
+    If a line with a different quantity, such as 50, is imported, the current line is deactivated and a new quantity line will be added with 50.
     A line can not be deleted.
 
 
 + Parameters
     + transaction (required, integer)
         Transaction identifier.
-            
+
 + Request Standard product creation - XML example (application/xml)
 
         <?xml version="1.0" encoding="UTF-8"?>
@@ -350,8 +326,51 @@ processing of data is done asynchronously afterwards.
             </product>
         </products>
 
++ Response 202
+    Accepted:
+    The request has been accepted for processing, but the processing has not been completed.
+    GET the same URI to get the result of the import.
+    + Body
 
-+ Response 202 
++ Response 405
+    Method not allowed:
+    A document has already been PUT to this transaction.
+    + Body
+
+### Get Status [GET]
+The GET method will show the current status of the import.
+
++ Parameters
+    + transaction (required, integer)
+        Transaction identifier.
+
++ Response 202
+    Accepted - The request is pending or processing.
+    + Body
+
++ Response 200
+    OK - The request was handled with success.
+    + Body
+
++ Response 204
+    No Content - Nothing was uploaded.
+    + Body
+
++ Response 206
+    Partial Content - The request caused errors.
+    + Body
+
+            <?xml version="1.0" encoding="UTF-8"?>
+            <errors xmlns="http://netimage.dk/pcm/provider/order-export">
+             <error>
+               <sequence>1</sequence>
+               <id>18</id>
+               <code>1048</code>
+               <message>Example text</message>
+             </error>
+            </errors>
+
+
 # Group Member Import
 Members include person, product, and ticket information. Since members are registered to a product, this product needs to be imported before the member is imported (if it does not exist  in Alletiders API already).  Furthermore in order to be able to scan tickets the product type needs to be subscription.
 The member import currently supports two content types: XML and CSV.
@@ -360,21 +379,30 @@ The member import process contains 3 steps:
 + Create a transaction for the import
 + Send member data
 + Do the import
+
+
 ## Create Transaction [/provider/member]
+
 ### Create Transaction [POST]
 Create a new member import transaction. The transaction is afterwards used to transfer members to Alletiders API.
 
 + Response 201
     + Headers
-    
+
             Location: /provider/member/{transaction}
+
+
 ## Import Members [/provider/member/{transaction}]
+
 ### Get status [GET]
-The GET method will show the current status of the import. 
+The GET method will show the current status of the import.
 
-It is not possible to delete a member /barcode. If a ticket is lost or needs to be deleted, you will have to change the valid to date to a date in the past.  Thus, it is not possible to reuse old codes.
+It is not possible to delete a member /barcode.
+If a ticket is lost or needs to be deleted, you will have to change the valid to date to a date in the past.
+Thus, it is not possible to reuse old codes.
 
-It is not possible to change the type (ticketIdentity-type) on already imported member. This will result in a warning.
+It is not possible to change the type (ticketIdentity-type) on already imported member.
+This will result in a warning.
 
 #### Warnings
 | Code | Description |
@@ -396,13 +424,14 @@ It is not possible to change the type (ticketIdentity-type) on already imported 
 
         <?xml version="1.0" encoding="UTF-8"?>
         <errors xmlns="http://netimage.dk/pcm/provider/order-export">
-         <error>
-           <sequence>1</sequence>
-           <id>18</id>
-           <code>1048</code>
-           <message>Example text</message>
-         </error>
+          <error>
+            <sequence>1</sequence>
+            <id>18</id>
+            <code>1048</code>
+            <message>Example text</message>
+          </error>
         </errors>
+
 ### Import Members [PUT]
 Imports the members to Alletiders API. If a member already exists data will be updated. Expected file encoding is UTF 8 and content type must be set in the header.
 
@@ -410,43 +439,43 @@ Imports the members to Alletiders API. If a member already exists data will be u
 + Attributes
     + address (optional, array)
         + name (optional, string)
-        
+
             Max length: 255 characters.
         + address (optional, string)
-        
+
             Max length: 255 characters.
         + zipCode (optional, string)
-        
+
             Max length: 5 characters.
 
         + city (optional, string)
-        
+
             Max length: 64 characters.
         + country (optional, string)
-            
+
             Max length: 25 characters.
         + phone (optional, string)
-        
+
             Max length: 16 characters.
         + email (optional, string)
-        
+
             Max length: 255 characters.
 
     + ticketIdentity (required, array)
         + code (required, string)
-            
+
             Ticket code. Max length: 255 characters.
         + type (required, string)
-        
+
             Ticket code type e.g. `EAN8`, `EAN13`, `Code128`.
         + valid (required, array)
             + from (required, datetime)
-            
+
                 Format: YYYY-MM-DDThh:mm:ssTZD
-            + to (required, datetime)                
+            + to (required, datetime)
                 Format: YYYY-MM-DDThh:mm:ssTZD
     + product (required, XXX)
-    
+
         Product consists of the product id that the member has subscribed to:
         label*  [type: int | maxlength: 10]
         NOTE: the product needs to be of type subscription.
@@ -458,15 +487,16 @@ Imports the members to Alletiders API. If a member already exists data will be u
 
 + Response 202
     + Headers
-    
+
             Location: /provider/member/{transaction}
+
 ## Create Transaction [/provider/order-export]
 ## Status [/provider/order-export/{transaction}]
 ### Get Completed Orders [GET]
 Get all completed orders for given transaction id. If it is a new transaction, All new orders are marked as exported (with the transaction) and returned.
 If it is an already used transaction, Orders already marked (exported or  tried exported) would be returned
 
-+ Parameters 
++ Parameters
     + transaction (required, integer)
         Transaction identifier
 + Response 200
@@ -532,10 +562,13 @@ If it is an already used transaction, Orders already marked (exported or  tried 
                 </orderLines>
               </order>
             </orders>
+
 # Group Language, Currency
+
 ## Language [/provider/language]
+
 ### Get Supported Languages [GET]
-Retrieve a list of supported languages. 
+Retrieve a list of supported languages.
 
 + Response 200 (application/xml)
 
@@ -548,7 +581,7 @@ Retrieve a list of supported languages.
           <language id="5" code="sv" locale="sw_SE">swedish</language>
           <language id="6" code="nl" locale="nl_NL">dutch</language>
         </languages>
-        
+
 + Response 200 (application/json)
 
         [
@@ -589,7 +622,10 @@ Retrieve a list of supported languages.
               "code":"nl"
            }
         ]
+
+
 ## Currency [/provider/currency]
+
 ### Get Supported Currencies [GET]
 Retrieve a list of supported currencies.
 
@@ -628,3 +664,4 @@ Retrieve a list of supported currencies.
               "currency":"NOK"
            }
         ]
+        
