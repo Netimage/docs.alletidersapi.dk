@@ -1,0 +1,64 @@
+FORMAT: 1A
+HOST: http://XXXX.denmarkdirect.dk
+
+# api.DenmarkBooking.dk
+
+Welcome to the **DenmarkBooking** API.
+
+# Group Language, Currency
+## Language [/provider/language]
+### Get Supported Languages [GET]
+Retrieve a list of supported languages. 
+
++ Response 200 (application/xml)
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <languages xmlns="http://netimage.dk/pcm/provider/language">
+          <language id="1" code="da" locale="da_DK">danish</language>
+          <language id="2" code="en" locale="en_GB">english</language>
+          <language id="3" code="de" locale="de_DE">german</language>
+          <language id="4" code="no" locale="nb_NO">norwegian</language>
+          <language id="5" code="sv" locale="sw_SE">swedish</language>
+          <language id="6" code="nl" locale="nl_NL">dutch</language>
+        </languages>
+        
++ Response 200 (application/json)
+
+        [
+           {
+              "id":1,
+              "label":"danish",
+              "locale":"da_DK",
+              "code":"da"
+           },
+           {
+              "id":2,
+              "label":"english",
+              "locale":"en_GB",
+              "code":"en"
+           },
+           {
+              "id":3,
+              "label":"german",
+              "locale":"de_DE",
+              "code":"de"
+           },
+           {
+              "id":4,
+              "label":"norwegian",
+              "locale":"nb_NO",
+              "code":"no"
+           },
+           {
+              "id":5,
+              "label":"swedish",
+              "locale":"sw_SE",
+              "code":"sv"
+           },
+           {
+              "id":6,
+              "label":"dutch",
+              "locale":"nl_NL",
+              "code":"nl"
+           }
+        ]
