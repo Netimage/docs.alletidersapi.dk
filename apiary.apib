@@ -1,9 +1,9 @@
 FORMAT: 1A
 HOST: http://alletidersapi.dk
 
-# api.DenmarkBooking.dk
+# provider.AlletidersAPI.dk
 
-Welcome to the **DenmarkBooking** API.
+Welcome to the **AlletidersAPI.dk** API.
 
 
 # Group Product Import
@@ -490,6 +490,94 @@ Imports the members to Alletiders API. If a member already exists data will be u
 
             Location: /provider/member/{transaction}
 
+# Group Order - Push
+
+XXX ORDER PUSH (Needs to be moved to an appropriate place)
+
+With push orders, the orders are sent in real time to the provider. The provider then needs to send the barcodes back to Alletiders API, which will then create the ticket and complete the order. This requires the provider to implement CRUD functionality for an order and provide RESTful service for the Alletiders API to fetch the barcodes.
+
+Depending on the sales channel, alletiders API can be responsible for sending the order confirmation email with the tickets. In order to be able to create them successfully, barcode must be of type EAN13 or Code39.
+On the other hand, if sales channel chose to send order confirmations - supported barcode types will vary.
+
+The {baseurl} is a predefined path.
+
+## Create Order  [/{baseurl}/order]
+### Create New Order [POST]
+Create a new order. Returns url to the new order including order id.
+productLabel on the line tag is the product id specified when importing product, it will not be included if product was created in admin interface.
+
+
++ Request Post Data Example
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <order id="1">
+          <created>2013-01-30T09:00:00+01:00</created>
+          <modified>2013-01-30T09:00:00+01:00</modified>
+          <address id="3">
+            <name>gd</name>
+            <address>gd</address>
+            <zipCode>gds</zipCode>
+            <city>gd</city>
+            <country></country>
+            <phone></phone>
+            <email>dtr@netimage.dk</email>
+          </address>
+          <currency>DKK</currency>
+          <channelId>5</channelId>
+          <lines>
+            <line id="1">
+              <productDataId>6</productDataId>
+              <productDataVer>1</productDataVer>
+              <productLabel>5147</productLabel>
+              <price>19900</price>
+              <unitPrice>9950</unitPrice>
+              <quantity>2</quantity>
+              <providerId>1</providerId>
+            </line>
+          </lines>
+        </order>
+
++ Response 201
+    + Headers
+
+            Location: {baseurl}/order/{orderId}
+
+## Execute Order [/{baseurl}/order/{orderid}]
+### Get Barcodes and Execute Order [GET]
+The second step consists of the Alletiders API making a GET request to the provider with the order id. Alletiders API expects the provider to return barcodes for the given order id. The orderId used here is the one extracted from location header from previously made POST request.
+
++ Response 200
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <order>
+            <lines>
+                <line id="0">
+                    <barcodes>
+                        <barcode type="Code39">Wikipedia</barcode>
+                    </barcodes>
+                </line>
+                <line id="1">
+                    <barcodes>
+                        <barcode type="EAN13">899067654321</barcode>
+                        <barcode type="Code39">102467654321</barcode>
+                        <barcode type="Code39">204867654321</barcode>
+                    </barcodes>
+                </line>
+            </lines>
+        </order>
+
+
+### Delete Order [DELETE]
+Deletes an existing order. The orderId used here is the one extracted from location header from previously made POST request.
+NOTE:  If the GET was invoked for this order (ticket identities were created), it is then the responsibility of the provider to do any necessary cleaning in their systems.
+
++ Response 204
+
+# Group Order - Pull
+This method enables the providers to pull a list of orders ready for processing using the Alletiders API.
+It is then up to the provider to complete the order process by providing the customer the confirmation mail and the ticket.
+
+
 ## Create Transaction [/provider/order-export]
 ## Status [/provider/order-export/{transaction}]
 ### Get Completed Orders [GET]
@@ -499,9 +587,9 @@ If it is an already used transaction, Orders already marked (exported or  tried 
 + Parameters
     + transaction (required, integer)
         Transaction identifier
+
 + Response 200
     Only if an order is made using a sales channel, the channel id will be specified
-
     + Body
 
             <?xml version="1.0" encoding="UTF-8"?>
@@ -562,6 +650,18 @@ If it is an already used transaction, Orders already marked (exported or  tried 
                 </orderLines>
               </order>
             </orders>
+
+
+### Create Transaction for Order Export [POST]
+Create a new transaction for order export.
+
++ Response 200
+    + Headers
+
+            Location: /provider/order-export/{transaction}
+
++ Response 204
+
 
 # Group Language, Currency
 
