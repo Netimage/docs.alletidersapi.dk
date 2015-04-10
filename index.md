@@ -1,8 +1,8 @@
 ---
-title: Combine Product and Event Booking Documentation!
+title: Documentation for Combine's Alletiders API
 layout: default
 ---
 
 # Documentation
 
-This site describes the Combine Event & Product Booking Solution.
+This site describes Combine's Alletiders API.

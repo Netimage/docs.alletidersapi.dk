@@ -1,7 +1,7 @@
-name: "Combine Product & Event Booking"
-description: "This is the documentation site for Combine Product & Event Booking system."
+name: "Combine Alletiders API"
+description: "This is the documentation site for Combine's Alletiders API."
 
-url: "http://ddapi.netimage.dk"
+url: "http://docs.AlletidersAPI.dk"
 
 markdown: rdiscount
 permalink: pretty
