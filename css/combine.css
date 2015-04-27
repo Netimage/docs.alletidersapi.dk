@@ -27,3 +27,12 @@
 .brand{
 	text-align: center;
 }
+
+table {
+	border-collapse: collapse;
+	border: 1px solid #999;
+}
+
+table tr td, table tr th {
+	padding: 5px;
+}
