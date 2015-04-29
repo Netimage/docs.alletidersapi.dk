@@ -5,10 +5,7 @@ layout: default
 
 # API Documentation
 
-We are currently preparing updated and interactive documentation of the API using Apiary.io.
-This new documentation will be ready in a few days.
+All of our technical documentation can be found on apiary.io by following one of the links below:
 
-Until then the documentation is supplied in two PDF files:
-
--   [Provider-API.pdf](Provider-API.pdf)
--   [Sales-Channel-API.pdf](Sales-Channel-API.pdf)
+-   [Provider API Documentation](http://docs.alletidersapiprovider.apiary.io/#)
+-   [Sales Channel API Documentation](http://docs.alletidersapisaleschannel.apiary.io/#)
