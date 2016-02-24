@@ -18,7 +18,7 @@ Der kan stadig puttes andre parametre i URL'en sammen med flere temaer
 
 	http://yourdomain.dk/embed/gallery/?theme[]=1&theme[]=2&limit=3&language=da-DK osv.
 
-Og det er også muligt kunj at have et enkelt tema
+Og det er også muligt kun at have et enkelt tema
 
 	http://yourdomain.dk/embed/gallery/?theme=1
 
