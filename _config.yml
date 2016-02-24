@@ -3,5 +3,5 @@ description: "This is the documentation site for Combine's Alletiders API."
 
 url: "http://docs.AlletidersAPI.dk"
 
-markdown: rdiscount
+markdown: kramdown
 permalink: pretty
