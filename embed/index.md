@@ -5,6 +5,10 @@ layout: default
 
 # Embed iFrame
 
+Alletiders API stiller nogle specielle sider tilgængelig som er målrettet efter iframe embedding. Det drejer sig om følgende:
+
+##Search
+http://yourdomain.dk/embed/search giver muligheden for at vise et søgefelt som vil søge efter produkter på det angivne domæne.
 
 For at få resultatet af flere temaer, tilføj hvert ønsket tema i iFrame src URLen.
 
