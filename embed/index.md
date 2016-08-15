@@ -7,12 +7,14 @@ layout: default
 
 Alletiders API stiller nogle specielle sider tilgængelig som er målrettet efter iframe embedding. Det drejer sig om følgende:
 
-##Search
+## Search
+
 	http://yourdomain.dk/embed/search
 
 Giver muligheden for at vise et søgefelt som vil søge efter produkter på det angivne domæne.
 
-##List
+## List
+
 	http://yourdomain.dk/embed/list
 	
 Giver muligheden for at vise en liste over produkter.
@@ -27,7 +29,7 @@ Eksempel på url med alle parametre:
 
 	http://yourdomain.dk/embed/gallery/?city=432&theme[]=1&limit=3
 
-##Gallery
+## Gallery
 
 	http://yourdomain.dk/embed/gallery
 
