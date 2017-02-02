@@ -24,10 +24,11 @@ Mulige parametre:
 	city		=[id på område]
 	theme		=[id for tema]
 	limit		=[antal resultater der skal vises]
+	distanceLimit	=[afgrænsning af udsøgningsområde i km]
 	
 Eksempel på url med alle parametre:
 
-	http://yourdomain.dk/embed/gallery/?city=432&theme[]=1&limit=3
+	http://yourdomain.dk/embed/gallery/?city=432&theme[]=1&limit=3&distanceLimit=50
 
 ## Gallery
 
