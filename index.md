@@ -16,9 +16,13 @@ Coverage of Travel Guarantee Fund
 Automatic transfer of revenue and much more
 
 
+
+
 #### BENEFITS
 
 The benefits of Experience Booking are not only the easy-to-use features that are a major part of the solution. It is also possible to integrate one or more of your existing systems so that relevant data, for example, is retrieved from an external database, or sold on your own website as a fully integrated part.
+
+
 
 
 #### FOR MORE INFORMATION
